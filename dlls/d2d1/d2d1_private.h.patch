@@ -1,0 +1,12 @@
+--- a/dlls/d2d1/d2d1_private.h
++++ b/dlls/d2d1/d2d1_private.h
+@@ -455,6 +455,8 @@ HRESULT d2d_bitmap_create(struct d2d_device_context *context, D2D1_SIZE_U size,
+         UINT32 pitch, const D2D1_BITMAP_PROPERTIES1 *desc, struct d2d_bitmap **bitmap);
+ HRESULT d2d_bitmap_create_shared(struct d2d_device_context *context, REFIID iid, void *data,
+         const D2D1_BITMAP_PROPERTIES1 *desc, struct d2d_bitmap **bitmap);
++HRESULT d2d_bitmap_create_from_wic_bitmap_lock(struct d2d_device_context *context, IWICBitmapLock *bitmap_lock,
++    const D2D1_BITMAP_PROPERTIES1 *desc, struct d2d_bitmap **bitmap);
+ HRESULT d2d_bitmap_create_from_wic_bitmap(struct d2d_device_context *context, IWICBitmapSource *bitmap_source,
+         const D2D1_BITMAP_PROPERTIES1 *desc, struct d2d_bitmap **bitmap);
+ unsigned int d2d_get_bitmap_options_for_surface(IDXGISurface *surface);
+

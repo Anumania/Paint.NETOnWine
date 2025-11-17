@@ -1,0 +1,13 @@
+--- a/dlls/d2d1/wic_render_target.c
++++ b/dlls/d2d1/wic_render_target.c
+@@ -227,6 +227,9 @@ HRESULT d2d_wic_render_target_init(struct d2d_wic_render_target *render_target,
+         case DXGI_FORMAT_R8G8B8A8_UNORM:
+             render_target->bpp = 4;
+             break;
++        case DXGI_FORMAT_A8_UNORM:
++            render_target->bpp = 1;
++            break;
+ 
+         default:
+             FIXME("Unhandled format %#x.\n", texture_desc.Format);
+

@@ -1,0 +1,140 @@
+--- a/dlls/d2d1/bitmap.c
++++ b/dlls/d2d1/bitmap.c
+@@ -680,11 +680,118 @@ HRESULT d2d_bitmap_create_shared(struct d2d_device_context *context, REFIID iid,
+         return S_OK;
+     }
+ 
++    if (IsEqualGUID(iid, &IID_IWICBitmapLock))
++    {
++        FIXME("IID_IWICBitmapLock probably isn't implemented correctly\n");
++        return d2d_bitmap_create_from_wic_bitmap_lock(context, data, desc, bitmap);
++        // return E_NOINTERFACE;
++        
++    }
++
+     WARN("Unhandled interface %s.\n", debugstr_guid(iid));
+ 
+     return E_INVALIDARG;
+ }
+ 
++HRESULT d2d_bitmap_create_from_wic_bitmap_lock(struct d2d_device_context *context, IWICBitmapLock *bitmap_lock,
++    const D2D1_BITMAP_PROPERTIES1 *desc, struct d2d_bitmap **bitmap)
++{
++    const D2D1_PIXEL_FORMAT *d2d_format;
++    D2D1_BITMAP_PROPERTIES1 bitmap_desc;
++    WICPixelFormatGUID wic_format;
++    unsigned int bpp;
++    D2D1_SIZE_U size;
++    unsigned int i;
++    UINT32 pitch;
++    HRESULT hr;
++    void *data;
++
++    static const struct
++    {
++        const WICPixelFormatGUID *wic;
++        D2D1_PIXEL_FORMAT d2d;
++    }
++    format_lookup[] =
++    {
++        {&GUID_WICPixelFormat32bppPBGRA, {DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED}},
++        {&GUID_WICPixelFormat32bppPRGBA, {DXGI_FORMAT_R8G8B8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED}},
++        {&GUID_WICPixelFormat32bppBGR,   {DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE}},
++        {&GUID_WICPixelFormat32bppRGB,   {DXGI_FORMAT_R8G8B8A8_UNORM, D2D1_ALPHA_MODE_IGNORE}},
++    };
++
++    if (FAILED(hr = IWICBitmapLock_GetSize(bitmap_lock, &size.width, &size.height)))
++    {
++        WARN("Failed to get bitmap size, hr %#lx.\n", hr);
++        return hr;
++    }
++
++    if (!desc)
++    {
++        bitmap_desc.pixelFormat.format = DXGI_FORMAT_UNKNOWN;
++        bitmap_desc.pixelFormat.alphaMode = D2D1_ALPHA_MODE_UNKNOWN;
++        bitmap_desc.dpiX = 0.0f;
++        bitmap_desc.dpiY = 0.0f;
++        bitmap_desc.bitmapOptions = 0;
++        bitmap_desc.colorContext = NULL;
++    }
++    else
++    {
++        bitmap_desc = *desc;
++    }
++
++    if (FAILED(hr = IWICBitmapLock_GetPixelFormat(bitmap_lock, &wic_format)))
++    {
++        WARN("Failed to get bitmap format, hr %#lx.\n", hr);
++        return hr;
++    }
++
++    for (i = 0, d2d_format = NULL; i < ARRAY_SIZE(format_lookup); ++i)
++    {
++        if (IsEqualGUID(&wic_format, format_lookup[i].wic))
++        {
++            FIXME("Manually setting D2D1_PIXEL_FORMAT. May not be correct.\n");
++            d2d_format = &format_lookup[i].d2d;
++            break;
++        }
++    }
++
++    if (!d2d_format)
++    {
++        WARN("Unsupported WIC bitmap format %s.\n", debugstr_guid(&wic_format));
++        // return D2DERR_UNSUPPORTED_PIXEL_FORMAT;
++        d2d_format = &format_lookup[0].d2d;
++    }
++
++    if (bitmap_desc.pixelFormat.format == DXGI_FORMAT_UNKNOWN)
++        bitmap_desc.pixelFormat.format = d2d_format->format;
++    if (bitmap_desc.pixelFormat.alphaMode == D2D1_ALPHA_MODE_UNKNOWN)
++        bitmap_desc.pixelFormat.alphaMode = d2d_format->alphaMode;
++
++    switch (bitmap_desc.pixelFormat.format)
++    {
++        case DXGI_FORMAT_B8G8R8A8_UNORM:
++        case DXGI_FORMAT_R8G8B8A8_UNORM:
++            bpp = 4;
++            break;
++
++        default:
++            FIXME("Unhandled format %#x.\n", bitmap_desc.pixelFormat.format);
++            return D2DERR_UNSUPPORTED_PIXEL_FORMAT;
++    }
++
++    pitch = ((bpp * size.width) + 15) & ~15;
++    if (pitch / bpp < size.width)
++        return E_OUTOFMEMORY;
++    if (!(data = calloc(size.height, pitch)))
++        return E_OUTOFMEMORY;
++
++    hr = d2d_bitmap_create(context, size, data, pitch, &bitmap_desc, bitmap);
++
++    free(data);
++
++    return hr;
++}
++
+ HRESULT d2d_bitmap_create_from_wic_bitmap(struct d2d_device_context *context, IWICBitmapSource *bitmap_source,
+         const D2D1_BITMAP_PROPERTIES1 *desc, struct d2d_bitmap **bitmap)
+ {
+@@ -742,6 +849,7 @@ HRESULT d2d_bitmap_create_from_wic_bitmap(struct d2d_device_context *context, IW
+     {
+         if (IsEqualGUID(&wic_format, format_lookup[i].wic))
+         {
++            FIXME("Manually setting D2D1_PIXEL_FORMAT. May not be correct.\n");
+             d2d_format = &format_lookup[i].d2d;
+             break;
+         }
+@@ -750,7 +858,8 @@ HRESULT d2d_bitmap_create_from_wic_bitmap(struct d2d_device_context *context, IW
+     if (!d2d_format)
+     {
+         WARN("Unsupported WIC bitmap format %s.\n", debugstr_guid(&wic_format));
+-        return D2DERR_UNSUPPORTED_PIXEL_FORMAT;
++        // return D2DERR_UNSUPPORTED_PIXEL_FORMAT;
++        d2d_format = &format_lookup[0].d2d;
+     }
+ 
+     if (bitmap_desc.pixelFormat.format == DXGI_FORMAT_UNKNOWN)
+

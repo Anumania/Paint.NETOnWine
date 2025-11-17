@@ -1,0 +1,10 @@
+--- a/include/d2d1.idl
++++ b/include/d2d1.idl
+@@ -34,6 +34,7 @@ interface ID2D1Brush;
+ interface IDWriteRenderingParams;
+ interface IDWriteTextFormat;
+ interface IDWriteTextLayout;
++interface IWICBitmapLock;
+ interface IWICBitmapSource;
+ interface IWICBitmap;
+ 
