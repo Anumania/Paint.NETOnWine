@@ -6,6 +6,24 @@ See the discussions on the Paint.NET forums [here](https://forums.getpaint.net/t
 
 This contains a set of patches to be applied to upstream WINE. These changes are experimental and are published for other developers to contribute / learn from.
 
+## FAQ
+
+> What's missing for Paint.NET to run on linux?
+
+Paint.NET heavily relies on the Direct2D API, which also happens to be severely underdeveloped in WINE. The vast majority of issues appear to be related to d2d1.dll.
+
+Paint.NET also relies on UiAnimation.dll. For the time being, a workable solution is to copy it from a windows install, however a long-term solution is to properly implement it as part of WINE
+
+> How long until I can use Paint.NET on xyz distro?
+
+It's going to be a long time before any of this is remotely ready for general use. However, the goal is to eventually get Paint.NET running more or less right out of the box with a standard up-to-date WINE installation.
+
+> Will this project support MacOS?
+
+WINE itself does support MacOS, however we are not testing on MacOS for now. If you can test and debug on MacOS, that would be appreciated, even if it's just a confirmation that it does/doesn't work.
+
+If you have any questions, please post on the Paint.NET [forum thread](https://forums.getpaint.net/topic/134148-getting-the-latest-pdn-version-working-on-linux-wine-work-in-progress/) or in the github discussions.
+
 ## Getting Started
 
 I highly suggest using a virtual machine to complete everything here.
@@ -56,5 +74,8 @@ This section is to give credit to those who are not listed as contributors on Gi
 - Rick Brewster for creating Paint.NET to begin with and encouraging this project
 - toe_head2001 for laying the groundwork for getting this project started
 - Several others on the Paint.NET forum for inspiring and motivating this project
+
+
+
 
 
