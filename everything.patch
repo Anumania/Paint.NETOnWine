@@ -1,0 +1,359 @@
+diff --git a/dlls/d2d1/bitmap.c b/dlls/d2d1/bitmap.c
+index c6ab60c1bc4..2940a5223d9 100644
+--- a/dlls/d2d1/bitmap.c
++++ b/dlls/d2d1/bitmap.c
+@@ -680,11 +680,118 @@ HRESULT d2d_bitmap_create_shared(struct d2d_device_context *context, REFIID iid,
+         return S_OK;
+     }
+ 
++    if (IsEqualGUID(iid, &IID_IWICBitmapLock))
++    {
++        FIXME("IID_IWICBitmapLock probably isn't implemented correctly\n");
++        return d2d_bitmap_create_from_wic_bitmap_lock(context, data, desc, bitmap);
++        // return E_NOINTERFACE;
++        
++    }
++
+     WARN("Unhandled interface %s.\n", debugstr_guid(iid));
+ 
+     return E_INVALIDARG;
+ }
+ 
++HRESULT d2d_bitmap_create_from_wic_bitmap_lock(struct d2d_device_context *context, IWICBitmapLock *bitmap_lock,
++    const D2D1_BITMAP_PROPERTIES1 *desc, struct d2d_bitmap **bitmap)
++{
++    const D2D1_PIXEL_FORMAT *d2d_format;
++    D2D1_BITMAP_PROPERTIES1 bitmap_desc;
++    WICPixelFormatGUID wic_format;
++    unsigned int bpp;
++    D2D1_SIZE_U size;
++    unsigned int i;
++    UINT32 pitch;
++    HRESULT hr;
++    void *data;
++
++    static const struct
++    {
++        const WICPixelFormatGUID *wic;
++        D2D1_PIXEL_FORMAT d2d;
++    }
++    format_lookup[] =
++    {
++        {&GUID_WICPixelFormat32bppPBGRA, {DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED}},
++        {&GUID_WICPixelFormat32bppPRGBA, {DXGI_FORMAT_R8G8B8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED}},
++        {&GUID_WICPixelFormat32bppBGR,   {DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE}},
++        {&GUID_WICPixelFormat32bppRGB,   {DXGI_FORMAT_R8G8B8A8_UNORM, D2D1_ALPHA_MODE_IGNORE}},
++    };
++
++    if (FAILED(hr = IWICBitmapLock_GetSize(bitmap_lock, &size.width, &size.height)))
++    {
++        WARN("Failed to get bitmap size, hr %#lx.\n", hr);
++        return hr;
++    }
++
++    if (!desc)
++    {
++        bitmap_desc.pixelFormat.format = DXGI_FORMAT_UNKNOWN;
++        bitmap_desc.pixelFormat.alphaMode = D2D1_ALPHA_MODE_UNKNOWN;
++        bitmap_desc.dpiX = 0.0f;
++        bitmap_desc.dpiY = 0.0f;
++        bitmap_desc.bitmapOptions = 0;
++        bitmap_desc.colorContext = NULL;
++    }
++    else
++    {
++        bitmap_desc = *desc;
++    }
++
++    if (FAILED(hr = IWICBitmapLock_GetPixelFormat(bitmap_lock, &wic_format)))
++    {
++        WARN("Failed to get bitmap format, hr %#lx.\n", hr);
++        return hr;
++    }
++
++    for (i = 0, d2d_format = NULL; i < ARRAY_SIZE(format_lookup); ++i)
++    {
++        if (IsEqualGUID(&wic_format, format_lookup[i].wic))
++        {
++            FIXME("Manually setting D2D1_PIXEL_FORMAT. May not be correct.\n");
++            d2d_format = &format_lookup[i].d2d;
++            break;
++        }
++    }
++
++    if (!d2d_format)
++    {
++        WARN("Unsupported WIC bitmap format %s.\n", debugstr_guid(&wic_format));
++        // return D2DERR_UNSUPPORTED_PIXEL_FORMAT;
++        d2d_format = &format_lookup[0].d2d;
++    }
++
++    if (bitmap_desc.pixelFormat.format == DXGI_FORMAT_UNKNOWN)
++        bitmap_desc.pixelFormat.format = d2d_format->format;
++    if (bitmap_desc.pixelFormat.alphaMode == D2D1_ALPHA_MODE_UNKNOWN)
++        bitmap_desc.pixelFormat.alphaMode = d2d_format->alphaMode;
++
++    switch (bitmap_desc.pixelFormat.format)
++    {
++        case DXGI_FORMAT_B8G8R8A8_UNORM:
++        case DXGI_FORMAT_R8G8B8A8_UNORM:
++            bpp = 4;
++            break;
++
++        default:
++            FIXME("Unhandled format %#x.\n", bitmap_desc.pixelFormat.format);
++            return D2DERR_UNSUPPORTED_PIXEL_FORMAT;
++    }
++
++    pitch = ((bpp * size.width) + 15) & ~15;
++    if (pitch / bpp < size.width)
++        return E_OUTOFMEMORY;
++    if (!(data = calloc(size.height, pitch)))
++        return E_OUTOFMEMORY;
++
++    hr = d2d_bitmap_create(context, size, data, pitch, &bitmap_desc, bitmap);
++
++    free(data);
++
++    return hr;
++}
++
+ HRESULT d2d_bitmap_create_from_wic_bitmap(struct d2d_device_context *context, IWICBitmapSource *bitmap_source,
+         const D2D1_BITMAP_PROPERTIES1 *desc, struct d2d_bitmap **bitmap)
+ {
+@@ -742,6 +849,7 @@ HRESULT d2d_bitmap_create_from_wic_bitmap(struct d2d_device_context *context, IW
+     {
+         if (IsEqualGUID(&wic_format, format_lookup[i].wic))
+         {
++            FIXME("Manually setting D2D1_PIXEL_FORMAT. May not be correct.\n");
+             d2d_format = &format_lookup[i].d2d;
+             break;
+         }
+@@ -750,7 +858,8 @@ HRESULT d2d_bitmap_create_from_wic_bitmap(struct d2d_device_context *context, IW
+     if (!d2d_format)
+     {
+         WARN("Unsupported WIC bitmap format %s.\n", debugstr_guid(&wic_format));
+-        return D2DERR_UNSUPPORTED_PIXEL_FORMAT;
++        // return D2DERR_UNSUPPORTED_PIXEL_FORMAT;
++        d2d_format = &format_lookup[0].d2d;
+     }
+ 
+     if (bitmap_desc.pixelFormat.format == DXGI_FORMAT_UNKNOWN)
+diff --git a/dlls/d2d1/d2d1_private.h b/dlls/d2d1/d2d1_private.h
+index 51bf830fc0a..03b422a2cd0 100644
+--- a/dlls/d2d1/d2d1_private.h
++++ b/dlls/d2d1/d2d1_private.h
+@@ -455,6 +455,8 @@ HRESULT d2d_bitmap_create(struct d2d_device_context *context, D2D1_SIZE_U size,
+         UINT32 pitch, const D2D1_BITMAP_PROPERTIES1 *desc, struct d2d_bitmap **bitmap);
+ HRESULT d2d_bitmap_create_shared(struct d2d_device_context *context, REFIID iid, void *data,
+         const D2D1_BITMAP_PROPERTIES1 *desc, struct d2d_bitmap **bitmap);
++HRESULT d2d_bitmap_create_from_wic_bitmap_lock(struct d2d_device_context *context, IWICBitmapLock *bitmap_lock,
++    const D2D1_BITMAP_PROPERTIES1 *desc, struct d2d_bitmap **bitmap);
+ HRESULT d2d_bitmap_create_from_wic_bitmap(struct d2d_device_context *context, IWICBitmapSource *bitmap_source,
+         const D2D1_BITMAP_PROPERTIES1 *desc, struct d2d_bitmap **bitmap);
+ unsigned int d2d_get_bitmap_options_for_surface(IDXGISurface *surface);
+diff --git a/dlls/d2d1/device.c b/dlls/d2d1/device.c
+index 3969046d5b3..076a0934df5 100644
+--- a/dlls/d2d1/device.c
++++ b/dlls/d2d1/device.c
+@@ -1799,7 +1799,7 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_Flush(ID2D1DeviceContext6 *i
+     if (context->ops && context->ops->device_context_present)
+         context->ops->device_context_present(context->outer_unknown);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static void STDMETHODCALLTYPE d2d_device_context_SaveDrawingState(ID2D1DeviceContext6 *iface,
+diff --git a/dlls/d2d1/geometry.c b/dlls/d2d1/geometry.c
+index 633919afa4f..68b2766dae5 100644
+--- a/dlls/d2d1/geometry.c
++++ b/dlls/d2d1/geometry.c
+@@ -3975,7 +3975,7 @@ static HRESULT STDMETHODCALLTYPE d2d_path_geometry_CombineWithGeometry(ID2D1Path
+     FIXME("iface %p, geometry %p, combine_mode %#x, transform %p, tolerance %.8e, sink %p stub!\n",
+             iface, geometry, combine_mode, transform, tolerance, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_path_geometry_Outline(ID2D1PathGeometry1 *iface,
+@@ -4020,7 +4020,7 @@ static HRESULT STDMETHODCALLTYPE d2d_path_geometry_Widen(ID2D1PathGeometry1 *ifa
+     FIXME("iface %p, stroke_width %.8e, stroke_style %p, transform %p, tolerance %.8e, sink %p stub!\n",
+             iface, stroke_width, stroke_style, transform, tolerance, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_path_geometry_Open(ID2D1PathGeometry1 *iface, ID2D1GeometrySink **sink)
+@@ -4044,7 +4044,7 @@ static HRESULT STDMETHODCALLTYPE d2d_path_geometry_Stream(ID2D1PathGeometry1 *if
+ {
+     FIXME("iface %p, sink %p stub!\n", iface, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_path_geometry_GetSegmentCount(ID2D1PathGeometry1 *iface, UINT32 *count)
+@@ -4187,7 +4187,7 @@ static HRESULT STDMETHODCALLTYPE d2d_ellipse_geometry_GetBounds(ID2D1EllipseGeom
+ {
+     FIXME("iface %p, transform %p, bounds %p stub!\n", iface, transform, bounds);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_ellipse_geometry_GetWidenedBounds(ID2D1EllipseGeometry *iface,
+@@ -4197,7 +4197,7 @@ static HRESULT STDMETHODCALLTYPE d2d_ellipse_geometry_GetWidenedBounds(ID2D1Elli
+     FIXME("iface %p, stroke_width %.8e, stroke_style %p, transform %p, tolerance %.8e, bounds %p stub!\n",
+             iface, stroke_width, stroke_style, transform, tolerance, bounds);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_ellipse_geometry_StrokeContainsPoint(ID2D1EllipseGeometry *iface,
+@@ -4319,7 +4319,7 @@ static HRESULT STDMETHODCALLTYPE d2d_ellipse_geometry_CombineWithGeometry(ID2D1E
+     FIXME("iface %p, geometry %p, combine_mode %#x, transform %p, tolerance %.8e, sink %p stub!\n",
+             iface, geometry, combine_mode, transform, tolerance, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_ellipse_geometry_Outline(ID2D1EllipseGeometry *iface,
+@@ -4365,7 +4365,7 @@ static HRESULT STDMETHODCALLTYPE d2d_ellipse_geometry_Widen(ID2D1EllipseGeometry
+     FIXME("iface %p, stroke_width %.8e, stroke_style %p, transform %p, tolerance %.8e, sink %p stub!\n",
+             iface, stroke_width, stroke_style, transform, tolerance, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static void STDMETHODCALLTYPE d2d_ellipse_geometry_GetEllipse(ID2D1EllipseGeometry *iface, D2D1_ELLIPSE *ellipse)
+@@ -4729,7 +4729,7 @@ static HRESULT STDMETHODCALLTYPE d2d_rectangle_geometry_CombineWithGeometry(ID2D
+     FIXME("iface %p, geometry %p, combine_mode %#x, transform %p, tolerance %.8e, sink %p stub!\n",
+             iface, geometry, combine_mode, transform, tolerance, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_rectangle_geometry_Outline(ID2D1RectangleGeometry *iface,
+@@ -4794,7 +4794,7 @@ static HRESULT STDMETHODCALLTYPE d2d_rectangle_geometry_Widen(ID2D1RectangleGeom
+     FIXME("iface %p, stroke_width %.8e, stroke_style %p, transform %p, tolerance %.8e, sink %p stub!\n",
+             iface, stroke_width, stroke_style, transform, tolerance, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static void STDMETHODCALLTYPE d2d_rectangle_geometry_GetRect(ID2D1RectangleGeometry *iface, D2D1_RECT_F *rect)
+@@ -4967,7 +4967,7 @@ static HRESULT STDMETHODCALLTYPE d2d_rounded_rectangle_geometry_GetBounds(ID2D1R
+ {
+     FIXME("iface %p, transform %p, bounds %p stub!\n", iface, transform, bounds);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_rounded_rectangle_geometry_GetWidenedBounds(ID2D1RoundedRectangleGeometry *iface,
+@@ -4977,7 +4977,7 @@ static HRESULT STDMETHODCALLTYPE d2d_rounded_rectangle_geometry_GetWidenedBounds
+     FIXME("iface %p, stroke_width %.8e, stroke_style %p, transform %p, tolerance %.8e, bounds %p stub!\n",
+             iface, stroke_width, stroke_style, transform, tolerance, bounds);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_rounded_rectangle_geometry_StrokeContainsPoint(
+@@ -5095,7 +5095,7 @@ static HRESULT STDMETHODCALLTYPE d2d_rounded_rectangle_geometry_CombineWithGeome
+     FIXME("iface %p, geometry %p, combine_mode %#x, transform %p, tolerance %.8e, sink %p stub!\n",
+             iface, geometry, combine_mode, transform, tolerance, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_rounded_rectangle_geometry_Outline(ID2D1RoundedRectangleGeometry *iface,
+@@ -5141,7 +5141,7 @@ static HRESULT STDMETHODCALLTYPE d2d_rounded_rectangle_geometry_Widen(ID2D1Round
+     FIXME("iface %p, stroke_width %.8e, stroke_style %p, transform %p, tolerance %.8e, sink %p stub!\n",
+             iface, stroke_width, stroke_style, transform, tolerance, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static void STDMETHODCALLTYPE d2d_rounded_rectangle_geometry_GetRoundedRect(ID2D1RoundedRectangleGeometry *iface,
+@@ -5354,7 +5354,7 @@ static HRESULT STDMETHODCALLTYPE d2d_transformed_geometry_GetWidenedBounds(ID2D1
+     FIXME("iface %p, stroke_width %.8e, stroke_style %p, transform %p, tolerance %.8e, bounds %p stub!\n",
+             iface, stroke_width, stroke_style, transform, tolerance, bounds);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_transformed_geometry_StrokeContainsPoint(ID2D1TransformedGeometry *iface,
+@@ -5443,7 +5443,7 @@ static HRESULT STDMETHODCALLTYPE d2d_transformed_geometry_CombineWithGeometry(ID
+     FIXME("iface %p, geometry %p, combine_mode %#x, transform %p, tolerance %.8e, sink %p stub!\n",
+             iface, geometry, combine_mode, transform, tolerance, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_transformed_geometry_Outline(ID2D1TransformedGeometry *iface,
+@@ -5494,7 +5494,7 @@ static HRESULT STDMETHODCALLTYPE d2d_transformed_geometry_Widen(ID2D1Transformed
+     FIXME("iface %p, stroke_width %.8e, stroke_style %p, transform %p, tolerance %.8e, sink %p stub!\n",
+             iface, stroke_width, stroke_style, transform, tolerance, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static void STDMETHODCALLTYPE d2d_transformed_geometry_GetSourceGeometry(ID2D1TransformedGeometry *iface,
+@@ -5709,7 +5709,7 @@ static HRESULT STDMETHODCALLTYPE d2d_geometry_group_CombineWithGeometry(ID2D1Geo
+     FIXME("iface %p, geometry %p, combine_mode %#x, transform %p, tolerance %.8e, sink %p stub!\n",
+             iface, geometry, combine_mode, transform, tolerance, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_geometry_group_Outline(ID2D1GeometryGroup *iface,
+@@ -5753,7 +5753,7 @@ static HRESULT STDMETHODCALLTYPE d2d_geometry_group_Widen(ID2D1GeometryGroup *if
+     FIXME("iface %p, stroke_width %.8e, stroke_style %p, transform %p, tolerance %.8e, sink %p stub!\n",
+             iface, stroke_width, stroke_style, transform, tolerance, sink);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static D2D1_FILL_MODE STDMETHODCALLTYPE d2d_geometry_group_GetFillMode(ID2D1GeometryGroup *iface)
+diff --git a/dlls/d2d1/wic_render_target.c b/dlls/d2d1/wic_render_target.c
+index c0720e69a8a..1ef2bba1438 100644
+--- a/dlls/d2d1/wic_render_target.c
++++ b/dlls/d2d1/wic_render_target.c
+@@ -227,6 +227,9 @@ HRESULT d2d_wic_render_target_init(struct d2d_wic_render_target *render_target,
+         case DXGI_FORMAT_R8G8B8A8_UNORM:
+             render_target->bpp = 4;
+             break;
++        case DXGI_FORMAT_A8_UNORM:
++            render_target->bpp = 1;
++            break;
+ 
+         default:
+             FIXME("Unhandled format %#x.\n", texture_desc.Format);
+diff --git a/include/d2d1.idl b/include/d2d1.idl
+index 08487fa6b0f..dfda181b9d4 100644
+--- a/include/d2d1.idl
++++ b/include/d2d1.idl
+@@ -34,6 +34,7 @@ interface ID2D1Brush;
+ interface IDWriteRenderingParams;
+ interface IDWriteTextFormat;
+ interface IDWriteTextLayout;
++interface IWICBitmapLock;
+ interface IWICBitmapSource;
+ interface IWICBitmap;
+ 
