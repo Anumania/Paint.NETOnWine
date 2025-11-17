@@ -32,7 +32,7 @@ Use `winecfg` to add `uianimation.dll` to the dll overrides.
 
 Install Arial, Segui UI, and Calibri fonts on your system. Paint.NET will actually crash in the text selection menu without these. I copied them from my windows install, but these fonts are popular enough to be found in various places.
 
-These patches are only tested wotj Paint.NET v4.0 for the time being. The Internet Archive is a reputable place to source older versions of Paint.NET, but be aware that they are entirely unsupported and the goal is to get the latest version working.
+These patches are only tested with Paint.NET v4.0 for the time being. The Internet Archive is a reputable place to source older versions of Paint.NET, but be aware that they are entirely unsupported and the goal is to get the latest version working.
 
 ## Roadmap
 
@@ -40,10 +40,11 @@ Part 1:
 - post all known issues on the github issue tracker
 - Split patches by file for easier browsing
 - Fix most of the major problems with Paint.NET v4.0
-- Update to the latest version
+- Update to the latest version of Paint.NET
 - Fix all of the crashes
 - Fix most of the usability problems
 - submit to upstream WINE
+- wait for the next release
 - write a public guide for installing.using Paint.NET on Linux
 
 Once that is completed, the next step will be eliminating the need to copy UiAnimation.dll from a windows install so Paint.NET can work out-of-the-box.
