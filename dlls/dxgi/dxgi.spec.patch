@@ -1,0 +1,10 @@
+diff --git a/dlls/dxgi/dxgi.spec b/dlls/dxgi/dxgi.spec
+index 67a345dc376..f58a0f00908 100644
+--- a/dlls/dxgi/dxgi.spec
++++ b/dlls/dxgi/dxgi.spec
+@@ -4,3 +4,4 @@
+ @ stdcall DXGID3D10CreateDevice(ptr ptr ptr long ptr long ptr)
+ @ stdcall DXGID3D10RegisterLayers(ptr long)
+ @ stdcall DXGIGetDebugInterface1(long ptr ptr)
++@ stdcall DXGIDeclareAdapterRemovalSupport()
+\ No newline at end of file

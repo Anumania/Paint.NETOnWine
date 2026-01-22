@@ -1,0 +1,16 @@
+diff --git a/dlls/dxgi/dxgi_main.c b/dlls/dxgi/dxgi_main.c
+index ca1fb525535..a73422f8b0a 100644
+--- a/dlls/dxgi/dxgi_main.c
++++ b/dlls/dxgi/dxgi_main.c
+@@ -250,3 +250,10 @@ HRESULT WINAPI DXGIGetDebugInterface1(UINT flags, REFIID iid, void **debug)
+     WARN("Returning DXGI_ERROR_SDK_COMPONENT_MISSING.\n");
+     return DXGI_ERROR_SDK_COMPONENT_MISSING;
+ }
++
++
++HRESULT WINAPI DXGIDeclareAdapterRemovalSupport() {
++    TRACE("DXGIDeclareAdapterRemovalSupport");
++    WARN("STUB");
++    return S_OK;
++}
+\ No newline at end of file
