@@ -1,0 +1,10 @@
+diff --git a/dlls/coremessaging/classes.idl b/dlls/coremessaging/classes.idl
+index af84f0a4eab..5996e99dac3 100644
+--- a/dlls/coremessaging/classes.idl
++++ b/dlls/coremessaging/classes.idl
+@@ -25,4 +25,5 @@ import "windows.system.idl";
+ 
+ namespace Windows.System {
+     runtimeclass DispatcherQueueController;
++    runtimeclass DispatcherQueue;
+ }
