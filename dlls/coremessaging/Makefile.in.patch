@@ -1,0 +1,12 @@
+diff --git a/dlls/coremessaging/Makefile.in b/dlls/coremessaging/Makefile.in
+index 4df45c482ef..a254791f047 100644
+--- a/dlls/coremessaging/Makefile.in
++++ b/dlls/coremessaging/Makefile.in
+@@ -3,6 +3,7 @@ IMPORTS   = combase
+ IMPORTLIB = coremessaging
+ 
+ SOURCES = \
++	dispatcher_queue.c \
+ 	async.c \
+ 	async_private.idl \
+ 	classes.idl \

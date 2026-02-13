@@ -1,0 +1,21 @@
+diff --git a/dlls/coremessaging/main.c b/dlls/coremessaging/main.c
+index 6fa2e282be4..3a4bacdb2c2 100644
+--- a/dlls/coremessaging/main.c
++++ b/dlls/coremessaging/main.c
+@@ -23,6 +23,7 @@
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(messaging);
+ 
++
+ struct dispatcher_queue_controller_statics
+ {
+     IActivationFactory IActivationFactory_iface;
+@@ -261,6 +262,8 @@ HRESULT WINAPI DllGetActivationFactory( HSTRING classid, IActivationFactory **fa
+ 
+     if (!wcscmp( name, RuntimeClass_Windows_System_DispatcherQueueController ))
+         IActivationFactory_QueryInterface( dispatcher_queue_controller_factory, &IID_IActivationFactory, (void **)factory );
++    if (!wcscmp( name, RuntimeClass_Windows_System_DispatcherQueue))
++        IActivationFactory_QueryInterface( dispatcher_queue_activation_factory, &IID_IActivationFactory, (void **)factory );
+ 
+     if (*factory) return S_OK;
+     return CLASS_E_CLASSNOTAVAILABLE;
