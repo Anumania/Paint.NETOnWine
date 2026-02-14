@@ -1,8 +1,155 @@
 diff --git a/dlls/d2d1/device.c b/dlls/d2d1/device.c
-index 74607dc8ea4..6549a7d9b2d 100644
+index 74607dc8ea4..a2e6a3b6504 100644
 --- a/dlls/d2d1/device.c
 +++ b/dlls/d2d1/device.c
-@@ -2427,6 +2427,10 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_GetImageLocalBounds(ID2D1Dev
+@@ -2199,13 +2199,145 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_ID2D1DeviceContext_CreateBit
+     return hr;
+ }
+ 
++
++
++/***********************************************************************
++ *          ID2D1ColorContext1
++ *          MOVE ME
++ */
++//TODO: make a private header file
++
++struct d2d_color_context
++{
++    ID2D1ColorContext1 ID2D1ColorContext1_iface;
++    LONG ref;
++
++    byte colorContext[10];
++    int contextSize;
++    ID2D1Factory *factory;
++};
++
++struct d2d_color_context *impl_from_ID2D1ColorContext1( ID2D1ColorContext1 *iface )
++{
++    return CONTAINING_RECORD( iface, struct d2d_color_context, ID2D1ColorContext1_iface );
++}
++
++static HRESULT WINAPI d2d_color_context_QueryInterface( ID2D1ColorContext1 *iface, REFIID iid, void **obj )
++{
++    struct d2d_color_context *This = impl_from_ID2D1ColorContext1( iface );
++
++    TRACE( "(%p)->(%s %p)\n", This, debugstr_guid( iid ), obj );
++
++    if (IsEqualIID( iid, &IID_IUnknown ) ||
++        IsEqualIID( iid, &IID_ID2D1Resource ) ||
++        IsEqualIID( iid, &IID_ID2D1ColorContext ) ||
++        IsEqualIID( iid, &IID_ID2D1ColorContext1 ))
++    {
++        ID2D1ColorContext1_AddRef( iface );
++        *obj = iface;
++        return S_OK;
++    }
++
++    FIXME( "interface %s not implemented\n", debugstr_guid( iid ) );
++    *obj = NULL;
++    return E_NOINTERFACE;
++}
++
++static ULONG WINAPI d2d_color_context_AddRef( ID2D1ColorContext1 *iface )
++{
++    struct d2d_color_context *This = impl_from_ID2D1ColorContext1( iface );
++    ULONG ref = InterlockedIncrement( &This->ref );
++
++    TRACE( "(%p) ref = %lu\n", This, ref );
++    return ref;
++}
++
++static ULONG WINAPI d2d_color_context_Release( ID2D1ColorContext1 *iface )
++{
++    struct d2d_color_context *This = impl_from_ID2D1ColorContext1( iface );
++    ULONG ref = InterlockedDecrement(&This->ref);
++
++    TRACE( "(%p) ref = %lu\n", This, ref );
++
++    if (!ref)
++        free( This );
++
++    return ref;
++}
++
++static void WINAPI d2d_color_context_GetFactory( ID2D1ColorContext1 *iface , ID2D1Factory **factory)
++{
++    struct d2d_color_context *This = impl_from_ID2D1ColorContext1( iface );
++    FIXME( "stub (%p) factory = %p\n", This, factory );
++    *factory = This->factory;
++    return;
++}
++
++static D2D1_COLOR_SPACE WINAPI d2d_color_context_GetColorSpace( ID2D1ColorContext1 *iface )
++{
++    struct d2d_color_context *This = impl_from_ID2D1ColorContext1( iface );
++    FIXME( "stub (%p) \n", This);
++
++    return (D2D1_COLOR_SPACE) 0;
++}
++
++static UINT32 WINAPI d2d_color_context_GetProfileSize( ID2D1ColorContext1 *iface )
++{
++    struct d2d_color_context *This = impl_from_ID2D1ColorContext1( iface );
++    FIXME( "stub (%p)\n", This );
++
++    return 0;
++}
++
++static HRESULT WINAPI d2d_color_context_GetProfile( ID2D1ColorContext1 *iface , BYTE *profile, UINT32 profileSize)
++{
++    struct d2d_color_context *This = impl_from_ID2D1ColorContext1( iface );
++    FIXME( "stub (%p) profile=%p profileSize=%u \n", This, profile, profileSize);
++    memset(profile, 0, profileSize);
++    return S_OK;
++}
++
++const struct ID2D1ColorContext1Vtbl d2d_color_context_vtbl =
++{
++    /* IUnknown Methods*/
++    d2d_color_context_QueryInterface,
++    d2d_color_context_AddRef,
++    d2d_color_context_Release,
++    /*ID2DResource Methods*/
++    d2d_color_context_GetFactory,
++    /*ID2D1ColorContext Methods*/
++    d2d_color_context_GetColorSpace,
++    d2d_color_context_GetProfileSize,
++    d2d_color_context_GetProfile
++};
++
++static HRESULT d2d_color_context_create( ID2D1ColorContext1 **obj , ID2D1Factory* factory)
++{
++    struct d2d_color_context *This = malloc( sizeof(*This) );
++
++    if (!This)
++        return E_OUTOFMEMORY;
++    This->ID2D1ColorContext1_iface.lpVtbl = &d2d_color_context_vtbl;
++    This->ref = 1;
++    This->contextSize = 0; 
++    This->factory = factory;
++
++    *obj = &This->ID2D1ColorContext1_iface;
++
++    return S_OK;
++}
++
+ static HRESULT STDMETHODCALLTYPE d2d_device_context_CreateColorContext(ID2D1DeviceContext6 *iface,
+         D2D1_COLOR_SPACE space, const BYTE *profile, UINT32 profile_size, ID2D1ColorContext **color_context)
+ {
+     FIXME("iface %p, space %#x, profile %p, profile_size %u, color_context %p stub!\n",
+             iface, space, profile, profile_size, color_context);
+ 
+-    return E_NOTIMPL;
++    struct d2d_device_context *context = impl_from_ID2D1DeviceContext(iface);
++    HRESULT hr = d2d_color_context_create((ID2D1ColorContext1**) color_context, context->factory);
++ 
++    TRACE("%p", color_context);
++    return hr;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d2d_device_context_CreateColorContextFromFilename(ID2D1DeviceContext6 *iface,
+@@ -2427,6 +2559,10 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_GetImageLocalBounds(ID2D1Dev
      D2D_SIZE_U pixel_size;
      ID2D1Bitmap *bitmap;
      D2D_SIZE_F size;
@@ -13,7 +160,7 @@ index 74607dc8ea4..6549a7d9b2d 100644
  
      TRACE("iface %p, image %p, local_bounds %p.\n", iface, image, local_bounds);
  
-@@ -2456,7 +2460,29 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_GetImageLocalBounds(ID2D1Dev
+@@ -2456,7 +2592,29 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_GetImageLocalBounds(ID2D1Dev
  
          return S_OK;
      }

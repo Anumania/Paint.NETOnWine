@@ -1,0 +1,13 @@
+diff --git a/dlls/dxgi/output.c b/dlls/dxgi/output.c
+index e828ed0d9d8..1e156bcd12b 100644
+--- a/dlls/dxgi/output.c
++++ b/dlls/dxgi/output.c
+@@ -659,7 +659,7 @@ static HRESULT STDMETHODCALLTYPE dxgi_output_CheckHardwareCompositionSupport(IDX
+ {
+     FIXME("iface %p, flags %p stub!\n", iface, flags);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static const struct IDXGIOutput6Vtbl dxgi_output_vtbl =
