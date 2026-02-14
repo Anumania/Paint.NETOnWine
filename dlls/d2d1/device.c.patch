@@ -1,8 +1,8 @@
 diff --git a/dlls/d2d1/device.c b/dlls/d2d1/device.c
-index 74607dc8ea4..a2e6a3b6504 100644
+index 74607dc8ea4..37526ad9b27 100644
 --- a/dlls/d2d1/device.c
 +++ b/dlls/d2d1/device.c
-@@ -2199,13 +2199,145 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_ID2D1DeviceContext_CreateBit
+@@ -2199,13 +2199,196 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_ID2D1DeviceContext_CreateBit
      return hr;
  }
  
@@ -19,10 +19,39 @@ index 74607dc8ea4..a2e6a3b6504 100644
 +    ID2D1ColorContext1 ID2D1ColorContext1_iface;
 +    LONG ref;
 +
-+    byte colorContext[10];
++    byte colorContext[290];
 +    int contextSize;
 +    ID2D1Factory *factory;
 +};
++
++//FIXME
++//this is from https://github.com/saucecontrol/Compact-ICC-Profiles?tab=readme-ov-file and NEEDS TO BE REPLACED WITH REAL CODE
++static byte TEMP_COLOR_PROFILE[] = {  
++    0x00, 0x00, 0x01, 0x22, 0x6c, 0x63, 0x6d, 0x73, 0x02, 0x10, 0x00, 0x00,
++  0x6d, 0x6e, 0x74, 0x72, 0x47, 0x52, 0x41, 0x59, 0x58, 0x59, 0x5a, 0x20,
++  0x07, 0xe2, 0x00, 0x03, 0x00, 0x14, 0x00, 0x09, 0x00, 0x0e, 0x00, 0x1d,
++  0x61, 0x63, 0x73, 0x70, 0x4d, 0x53, 0x46, 0x54, 0x00, 0x00, 0x00, 0x00,
++  0x73, 0x61, 0x77, 0x73, 0x63, 0x74, 0x72, 0x6c, 0x00, 0x00, 0x00, 0x00,
++  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf6, 0xd6,
++  0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0xd3, 0x2d, 0x68, 0x61, 0x6e, 0x64,
++  0x0e, 0x9c, 0x0f, 0x81, 0x66, 0x91, 0x97, 0x1f, 0x60, 0xd4, 0x86, 0xa3,
++  0x3d, 0x46, 0xfb, 0x5c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04,
++  0x64, 0x65, 0x73, 0x63, 0x00, 0x00, 0x00, 0xb4, 0x00, 0x00, 0x00, 0x5f,
++  0x77, 0x74, 0x70, 0x74, 0x00, 0x00, 0x00, 0xd0, 0x00, 0x00, 0x00, 0x14,
++  0x6b, 0x54, 0x52, 0x43, 0x00, 0x00, 0x00, 0xe4, 0x00, 0x00, 0x00, 0x34,
++  0x63, 0x70, 0x72, 0x74, 0x00, 0x00, 0x01, 0x18, 0x00, 0x00, 0x00, 0x0a,
++  0x64, 0x65, 0x73, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05,
++  0x6e, 0x47, 0x72, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++  0x00, 0x00, 0x00, 0x00, 0x58, 0x59, 0x5a, 0x20, 0x00, 0x00, 0x00, 0x00,
++  0x00, 0x00, 0xf3, 0x54, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x16, 0xc9,
++  0x63, 0x75, 0x72, 0x76, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14,
++  0x00, 0x00, 0x01, 0x07, 0x02, 0xb5, 0x05, 0x6b, 0x09, 0x36, 0x0e, 0x50,
++  0x14, 0xb1, 0x1c, 0x80, 0x25, 0xc8, 0x30, 0xa1, 0x3d, 0x19, 0x4b, 0x40,
++  0x5b, 0x27, 0x6c, 0xdb, 0x80, 0x6b, 0x95, 0xe3, 0xad, 0x50, 0xc6, 0xc2,
++  0xe2, 0x31, 0xff, 0xff, 0x74, 0x65, 0x78, 0x74, 0x00, 0x00, 0x00, 0x00,
++  0x30, 0x00};
 +
 +struct d2d_color_context *impl_from_ID2D1ColorContext1( ID2D1ColorContext1 *iface )
 +{
@@ -93,15 +122,30 @@ index 74607dc8ea4..a2e6a3b6504 100644
 +    struct d2d_color_context *This = impl_from_ID2D1ColorContext1( iface );
 +    FIXME( "stub (%p)\n", This );
 +
-+    return 0;
++    return sizeof(TEMP_COLOR_PROFILE);
 +}
 +
 +static HRESULT WINAPI d2d_color_context_GetProfile( ID2D1ColorContext1 *iface , BYTE *profile, UINT32 profileSize)
 +{
 +    struct d2d_color_context *This = impl_from_ID2D1ColorContext1( iface );
 +    FIXME( "stub (%p) profile=%p profileSize=%u \n", This, profile, profileSize);
-+    memset(profile, 0, profileSize);
++    memcpy(profile, TEMP_COLOR_PROFILE, profileSize);
 +    return S_OK;
++}
++
++static D2D1_COLOR_CONTEXT_TYPE WINAPI d2d_color_context_GetColorContextType( ID2D1ColorContext1 *iface ) {
++    FIXME( "stub (%p) \n", iface);
++    return (D2D1_COLOR_CONTEXT_TYPE) 0;
++}
++
++static DXGI_COLOR_SPACE_TYPE WINAPI d2d_color_context_GetDXGIColorSpace( ID2D1ColorContext1 *iface ) {
++    FIXME( "stub (%p) \n", iface);
++    return (DXGI_COLOR_SPACE_TYPE) 0;
++}
++
++static HRESULT WINAPI d2d_color_context_GetSimpleColorProfile(  ID2D1ColorContext1 *iface , D2D1_SIMPLE_COLOR_PROFILE *simple_profile ) {
++    FIXME( "stub (%p) \n", iface);
++    return E_NOTIMPL;
 +}
 +
 +const struct ID2D1ColorContext1Vtbl d2d_color_context_vtbl =
@@ -115,8 +159,14 @@ index 74607dc8ea4..a2e6a3b6504 100644
 +    /*ID2D1ColorContext Methods*/
 +    d2d_color_context_GetColorSpace,
 +    d2d_color_context_GetProfileSize,
-+    d2d_color_context_GetProfile
++    d2d_color_context_GetProfile,
++    /*ID2D1ColorContext1 Methods*/
++    d2d_color_context_GetColorContextType,
++    d2d_color_context_GetDXGIColorSpace,
++    d2d_color_context_GetSimpleColorProfile
 +};
++
++
 +
 +static HRESULT d2d_color_context_create( ID2D1ColorContext1 **obj , ID2D1Factory* factory)
 +{
@@ -126,7 +176,8 @@ index 74607dc8ea4..a2e6a3b6504 100644
 +        return E_OUTOFMEMORY;
 +    This->ID2D1ColorContext1_iface.lpVtbl = &d2d_color_context_vtbl;
 +    This->ref = 1;
-+    This->contextSize = 0; 
++    This->contextSize = sizeof(TEMP_COLOR_PROFILE); 
++    memset(This->colorContext, 0, sizeof(TEMP_COLOR_PROFILE));
 +    This->factory = factory;
 +
 +    *obj = &This->ID2D1ColorContext1_iface;
@@ -149,7 +200,19 @@ index 74607dc8ea4..a2e6a3b6504 100644
  }
  
  static HRESULT STDMETHODCALLTYPE d2d_device_context_CreateColorContextFromFilename(ID2D1DeviceContext6 *iface,
-@@ -2427,6 +2559,10 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_GetImageLocalBounds(ID2D1Dev
+@@ -2221,7 +2404,10 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_CreateColorContextFromWicCol
+ {
+     FIXME("iface %p, wic_color_context %p, color_context %p stub!\n", iface, wic_color_context, color_context);
+ 
+-    return E_NOTIMPL;
++    struct d2d_device_context *context = impl_from_ID2D1DeviceContext(iface);
++    HRESULT hr = d2d_color_context_create((ID2D1ColorContext1**) color_context, context->factory);
++
++    return S_OK;
+ }
+ 
+ static BOOL d2d_bitmap_check_options_with_surface(unsigned int options, unsigned int surface_options)
+@@ -2427,6 +2613,10 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_GetImageLocalBounds(ID2D1Dev
      D2D_SIZE_U pixel_size;
      ID2D1Bitmap *bitmap;
      D2D_SIZE_F size;
@@ -160,7 +223,7 @@ index 74607dc8ea4..a2e6a3b6504 100644
  
      TRACE("iface %p, image %p, local_bounds %p.\n", iface, image, local_bounds);
  
-@@ -2456,7 +2592,29 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_GetImageLocalBounds(ID2D1Dev
+@@ -2456,7 +2646,29 @@ static HRESULT STDMETHODCALLTYPE d2d_device_context_GetImageLocalBounds(ID2D1Dev
  
          return S_OK;
      }

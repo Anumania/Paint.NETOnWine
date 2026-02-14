@@ -1,5 +1,5 @@
 diff --git a/dlls/d2d1/geometry.c b/dlls/d2d1/geometry.c
-index 9d0b2cfd551..4a14c19605c 100644
+index 8ed81c5d8dc..3117b96a3b8 100644
 --- a/dlls/d2d1/geometry.c
 +++ b/dlls/d2d1/geometry.c
 @@ -4412,7 +4412,7 @@ static HRESULT STDMETHODCALLTYPE d2d_path_geometry_CombineWithGeometry(ID2D1Path
