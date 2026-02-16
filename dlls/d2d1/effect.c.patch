@@ -1,12 +1,13 @@
 diff --git a/dlls/d2d1/effect.c b/dlls/d2d1/effect.c
-index b66fe731523..392aef24297 100644
+index b66fe731523..082ccdd02d9 100644
 --- a/dlls/d2d1/effect.c
 +++ b/dlls/d2d1/effect.c
-@@ -17,7 +17,10 @@
+@@ -17,7 +17,11 @@
   */
  
  #include "d2d1_private.h"
 -
++#include "d2d1effects_2.h"
 +#undef E_INVALIDARG
 +#define E_INVALIDARG S_OK
 +#undef D2DERR_INVALID_PROPERTY
@@ -14,7 +15,7 @@ index b66fe731523..392aef24297 100644
  WINE_DEFAULT_DEBUG_CHANNEL(d2d);
  
  static inline struct d2d_transform *impl_from_ID2D1OffsetTransform(ID2D1OffsetTransform *iface)
-@@ -1468,6 +1471,52 @@ static HRESULT __stdcall gaussian_blur_factory(IUnknown **effect)
+@@ -1468,6 +1472,52 @@ static HRESULT __stdcall gaussian_blur_factory(IUnknown **effect)
      return d2d_effect_create_impl(effect, &properties, sizeof(properties));
  }
  
@@ -67,7 +68,7 @@ index b66fe731523..392aef24297 100644
  static const WCHAR point_specular_description[] =
  L"<?xml version='1.0'?>                                                   \
    <Effect>                                                                \
-@@ -1828,6 +1877,7 @@ void d2d_effects_init_builtins(struct d2d_factory *factory)
+@@ -1828,6 +1878,7 @@ void d2d_effects_init_builtins(struct d2d_factory *factory)
          { &CLSID_D2D1Flood, X2(flood) },
          { &CLSID_D2D1GaussianBlur, X2(gaussian_blur) },
          { &CLSID_D2D1PointSpecular, X2(point_specular) },
@@ -75,7 +76,7 @@ index b66fe731523..392aef24297 100644
          { &CLSID_D2D1ArithmeticComposite, X2(arithmetic_composite) },
          { &CLSID_D2D1Blend, X2(blend) },
          { &CLSID_D2D1Brightness, X2(brightness) },
-@@ -2189,15 +2239,15 @@ static HRESULT d2d_effect_property_set_value(struct d2d_effect_properties *prope
+@@ -2189,15 +2240,15 @@ static HRESULT d2d_effect_property_set_value(struct d2d_effect_properties *prope
          struct d2d_effect_property *prop, D2D1_PROPERTY_TYPE type, const BYTE *value, UINT32 size)
  {
      struct d2d_effect *effect = properties->effect;
@@ -97,19 +98,19 @@ index b66fe731523..392aef24297 100644
  
      switch (prop->type)
      {
-@@ -3071,6 +3121,11 @@ static D2D1_PROPERTY_TYPE STDMETHODCALLTYPE d2d_effect_properties_GetType(ID2D1P
+@@ -3071,6 +3122,11 @@ static D2D1_PROPERTY_TYPE STDMETHODCALLTYPE d2d_effect_properties_GetType(ID2D1P
      struct d2d_effect_property *prop;
  
      TRACE("iface %p, index %#x.\n", iface, index);
-+    static int hack = 0;
++    //static int hack = 0;
 +    //dude..
-+    hack++;
-+    if(hack >= 17 && hack < 19)
-+        return D2D1_PROPERTY_TYPE_COLOR_CONTEXT;
++    //hack++;
++    //if(hack >= 17 && hack < 19)
++    //    return D2D1_PROPERTY_TYPE_COLOR_CONTEXT;
  
      if (!(prop = d2d_effect_properties_get_property_by_index(properties, index)))
          return D2D1_PROPERTY_TYPE_UNKNOWN;
-@@ -3114,9 +3169,9 @@ static HRESULT STDMETHODCALLTYPE d2d_effect_properties_SetValue(ID2D1Properties
+@@ -3114,9 +3170,9 @@ static HRESULT STDMETHODCALLTYPE d2d_effect_properties_SetValue(ID2D1Properties
      struct d2d_effect_property *prop;
  
      TRACE("iface %p, index %#x, type %u, value %p, value_size %u.\n", iface, index, type, value, value_size);
@@ -121,7 +122,7 @@ index b66fe731523..392aef24297 100644
  
      return d2d_effect_property_set_value(properties, prop, type, value, value_size);
  }
-@@ -3144,9 +3199,9 @@ static HRESULT STDMETHODCALLTYPE d2d_effect_properties_GetValue(ID2D1Properties
+@@ -3144,9 +3200,9 @@ static HRESULT STDMETHODCALLTYPE d2d_effect_properties_GetValue(ID2D1Properties
  
      TRACE("iface %p, index %#x, type %u, value %p, value_size %u.\n", iface, index, type, value, value_size);
  
@@ -133,14 +134,24 @@ index b66fe731523..392aef24297 100644
      return d2d_effect_property_get_value(properties, prop, type, value, value_size);
  }
  
-@@ -3429,7 +3484,9 @@ HRESULT d2d_effect_create(struct d2d_device_context *context, const CLSID *effec
+@@ -3429,7 +3485,19 @@ HRESULT d2d_effect_create(struct d2d_device_context *context, const CLSID *effec
      if (!(reg = d2d_factory_get_registered_effect(context->factory, effect_id)))
      {
          WARN("Effect id %s not found.\n", wine_dbgstr_guid(effect_id));
 -        return D2DERR_EFFECT_IS_NOT_REGISTERED;
-+
-+        reg = d2d_factory_get_registered_effect(context->factory, &CLSID_D2D1Blend);
-+        //return D2DERR_EFFECT_IS_NOT_REGISTERED;
++        if(IsEqualCLSID(effect_id, &CLSID_D2D1OpacityMetadata) ||
++            IsEqualCLSID(effect_id, &CLSID_D2D1Histogram) || 
++            IsEqualCLSID(effect_id, &CLSID_D2D1AlphaMask) || 
++            IsEqualCLSID(effect_id, &CLSID_D2D1ConvolveMatrix) || 
++            IsEqualCLSID(effect_id, &CLSID_D2D1Contrast) || 
++            IsEqualCLSID(effect_id, &CLSID_D2D1Opacity) ||
++            IsEqualCLSID(effect_id, &CLSID_D2D1BitmapSource) ||
++            IsEqualCLSID(effect_id, &CLSID_D2D1Emboss) ||
++            IsEqualCLSID(effect_id, &CLSID_D2D12DAffineTransform)
++        )
++            reg = d2d_factory_get_registered_effect(context->factory, &CLSID_D2D1Blend);
++        else
++            return D2DERR_EFFECT_IS_NOT_REGISTERED;
      }
  
      if (!(effect_context = calloc(1, sizeof(*effect_context))))
