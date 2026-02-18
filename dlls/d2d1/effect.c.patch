@@ -1,5 +1,5 @@
 diff --git a/dlls/d2d1/effect.c b/dlls/d2d1/effect.c
-index b66fe731523..082ccdd02d9 100644
+index b66fe731523..95cdc2a84bc 100644
 --- a/dlls/d2d1/effect.c
 +++ b/dlls/d2d1/effect.c
 @@ -17,7 +17,11 @@
@@ -8,10 +8,10 @@ index b66fe731523..082ccdd02d9 100644
  #include "d2d1_private.h"
 -
 +#include "d2d1effects_2.h"
-+#undef E_INVALIDARG
-+#define E_INVALIDARG S_OK
-+#undef D2DERR_INVALID_PROPERTY
-+#define D2DERR_INVALID_PROPERTY S_OK
++//#undef E_INVALIDARG
++//#define E_INVALIDARG S_OK
++//#undef D2DERR_INVALID_PROPERTY
++//#define D2DERR_INVALID_PROPERTY S_OK
  WINE_DEFAULT_DEBUG_CHANNEL(d2d);
  
  static inline struct d2d_transform *impl_from_ID2D1OffsetTransform(ID2D1OffsetTransform *iface)
@@ -76,65 +76,12 @@ index b66fe731523..082ccdd02d9 100644
          { &CLSID_D2D1ArithmeticComposite, X2(arithmetic_composite) },
          { &CLSID_D2D1Blend, X2(blend) },
          { &CLSID_D2D1Brightness, X2(brightness) },
-@@ -2189,15 +2240,15 @@ static HRESULT d2d_effect_property_set_value(struct d2d_effect_properties *prope
-         struct d2d_effect_property *prop, D2D1_PROPERTY_TYPE type, const BYTE *value, UINT32 size)
- {
-     struct d2d_effect *effect = properties->effect;
--    if (prop->readonly || !effect) return E_INVALIDARG;
--    if (type != D2D1_PROPERTY_TYPE_UNKNOWN && prop->type != type) return E_INVALIDARG;
--    if (prop->get_function && !prop->set_function) return E_INVALIDARG;
--    if (prop->index < 0x80000000 && !prop->set_function) return E_INVALIDARG;
--
-+    //if (prop->readonly || !effect) return E_INVALIDARG;
-+    //if (type != D2D1_PROPERTY_TYPE_UNKNOWN && prop->type != type) return E_INVALIDARG;
-+    //if (prop->get_function && !prop->set_function) return E_INVALIDARG;
-+    //if (prop->index < 0x80000000 && !prop->set_function) return E_INVALIDARG;
-+    return S_OK;
-     if (prop->set_function)
-         return prop->set_function((IUnknown *)effect->impl, value, size);
+@@ -3425,11 +3476,24 @@ HRESULT d2d_effect_create(struct d2d_device_context *context, const CLSID *effec
+     UINT32 input_count;
+     WCHAR clsidW[39];
+     HRESULT hr;
++    ID2D1EffectImpl *impl = NULL; 
  
--    if (prop->size != size) return E_INVALIDARG;
-+    //if (prop->size != size) return E_INVALIDARG;
- 
-     switch (prop->type)
-     {
-@@ -3071,6 +3122,11 @@ static D2D1_PROPERTY_TYPE STDMETHODCALLTYPE d2d_effect_properties_GetType(ID2D1P
-     struct d2d_effect_property *prop;
- 
-     TRACE("iface %p, index %#x.\n", iface, index);
-+    //static int hack = 0;
-+    //dude..
-+    //hack++;
-+    //if(hack >= 17 && hack < 19)
-+    //    return D2D1_PROPERTY_TYPE_COLOR_CONTEXT;
- 
-     if (!(prop = d2d_effect_properties_get_property_by_index(properties, index)))
-         return D2D1_PROPERTY_TYPE_UNKNOWN;
-@@ -3114,9 +3170,9 @@ static HRESULT STDMETHODCALLTYPE d2d_effect_properties_SetValue(ID2D1Properties
-     struct d2d_effect_property *prop;
- 
-     TRACE("iface %p, index %#x, type %u, value %p, value_size %u.\n", iface, index, type, value, value_size);
--
-+    return S_OK;
-     if (!(prop = d2d_effect_properties_get_property_by_index(properties, index)))
--        return D2DERR_INVALID_PROPERTY;
-+        return S_OK;
- 
-     return d2d_effect_property_set_value(properties, prop, type, value, value_size);
- }
-@@ -3144,9 +3200,9 @@ static HRESULT STDMETHODCALLTYPE d2d_effect_properties_GetValue(ID2D1Properties
- 
-     TRACE("iface %p, index %#x, type %u, value %p, value_size %u.\n", iface, index, type, value, value_size);
- 
--    if (!(prop = d2d_effect_properties_get_property_by_index(properties, index)))
-+    if (!(prop = d2d_effect_properties_get_property_by_index(properties, index))){
-         return D2DERR_INVALID_PROPERTY;
--
-+    }
-     return d2d_effect_property_get_value(properties, prop, type, value, value_size);
- }
- 
-@@ -3429,7 +3485,19 @@ HRESULT d2d_effect_create(struct d2d_device_context *context, const CLSID *effec
      if (!(reg = d2d_factory_get_registered_effect(context->factory, effect_id)))
      {
          WARN("Effect id %s not found.\n", wine_dbgstr_guid(effect_id));
@@ -155,3 +102,14 @@ index b66fe731523..082ccdd02d9 100644
      }
  
      if (!(effect_context = calloc(1, sizeof(*effect_context))))
+@@ -3471,8 +3535,9 @@ HRESULT d2d_effect_create(struct d2d_device_context *context, const CLSID *effec
+         ID2D1Effect_Release(&object->ID2D1Effect_iface);
+         return hr;
+     }
++    ID2D1EffectImpl_QueryInterface(object->impl, &IID_ID2D1EffectImpl, (void**)&impl );
+ 
+-    if (FAILED(hr = ID2D1EffectImpl_Initialize(object->impl, &effect_context->ID2D1EffectContext_iface,
++    if (FAILED(hr = ID2D1EffectImpl_Initialize(impl, &effect_context->ID2D1EffectContext_iface,
+             &object->graph->ID2D1TransformGraph_iface)))
+     {
+         WARN("Failed to initialize effect, hr %#lx.\n", hr);
