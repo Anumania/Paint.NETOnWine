@@ -1,13 +1,15 @@
 diff --git a/dlls/d2d1/command_list.c b/dlls/d2d1/command_list.c
-index 4d81f0f1ccf..2a08cd3872a 100644
+index 4d81f0f1ccf..a7f67f322af 100644
 --- a/dlls/d2d1/command_list.c
 +++ b/dlls/d2d1/command_list.c
-@@ -476,7 +476,7 @@ static HRESULT STDMETHODCALLTYPE d2d_command_list_Close(ID2D1CommandList *iface)
+@@ -475,8 +475,8 @@ static HRESULT STDMETHODCALLTYPE d2d_command_list_Close(ID2D1CommandList *iface)
+ 
      FIXME("iface %p stub.\n", iface);
  
-     if (command_list->state != D2D_COMMAND_LIST_STATE_OPEN)
+-    if (command_list->state != D2D_COMMAND_LIST_STATE_OPEN)
 -        return D2DERR_WRONG_STATE;
-+        return S_OK;
++    //if (command_list->state != D2D_COMMAND_LIST_STATE_OPEN)
++        //return D2DERR_WRONG_STATE;
  
      command_list->state = D2D_COMMAND_LIST_STATE_CLOSED;
  
