@@ -1,0 +1,14 @@
+diff --git a/dlls/d2d1/brush.c b/dlls/d2d1/brush.c
+index 50754a2f21a..31431fac0f8 100644
+--- a/dlls/d2d1/brush.c
++++ b/dlls/d2d1/brush.c
+@@ -30,7 +30,8 @@ static HRESULT STDMETHODCALLTYPE d2d_gradient_QueryInterface(ID2D1GradientStopCo
+ {
+     TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
+ 
+-    if (IsEqualGUID(iid, &IID_ID2D1GradientStopCollection)
++    if (IsEqualGUID(iid, &IID_ID2D1GradientStopCollection) ||
++        IsEqualGUID(iid, &IID_ID2D1GradientStopCollection1) 
+             || IsEqualGUID(iid, &IID_ID2D1Resource)
+             || IsEqualGUID(iid, &IID_IUnknown))
+     {

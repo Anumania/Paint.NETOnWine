@@ -1,0 +1,13 @@
+diff --git a/dlls/dcomp/dcomp.spec b/dlls/dcomp/dcomp.spec
+index 2120ce8b6f6..a8c7c7da30e 100644
+--- a/dlls/dcomp/dcomp.spec
++++ b/dlls/dcomp/dcomp.spec
+@@ -19,7 +19,7 @@
+ @ stub DCompositionCreateSurfaceHandle
+ @ stub DeserializeEffectDescription
+ @ stdcall -private DllCanUnloadNow()
+-@ stub DllGetActivationFactory
++@ stdcall -private DllGetActivationFactory(ptr ptr)
+ @ stub DllGetClassObject
+ @ stub DwmEnableMMCSS
+ @ stub DwmFlush

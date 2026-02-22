@@ -1,36 +1,84 @@
 diff --git a/dlls/d2d1/factory.c b/dlls/d2d1/factory.c
-index 80c147638cd..d81ca365cd1 100644
+index 80c147638cd..6f0f87b3d9e 100644
 --- a/dlls/d2d1/factory.c
 +++ b/dlls/d2d1/factory.c
-@@ -740,6 +740,9 @@ static struct d2d_effect_property * parse_effect_get_property(const struct d2d_e
- 
-     for (i = 0; i < effect->properties->count; ++i)
-     {
-+        TRACE("%ls: %x \n", effect->properties->properties[i].name, effect->properties->properties[i].type);
-+        //if(effect->properties->properties[i].type == 9)
-+            //TRACE("%x", effect->properties->properties[i].);
-         if (!wcscmp(name, effect->properties->properties[i].name))
-             return &effect->properties->properties[i];
-     }
-@@ -1099,6 +1102,11 @@ static HRESULT STDMETHODCALLTYPE d2d_factory_RegisterEffectFromString(ID2D1Facto
-     TRACE("iface %p, effect_id %s, property_xml %s, bindings %p, binding_count %u, effect_factory %p.\n",
-           iface, debugstr_guid(effect_id), debugstr_w(property_xml), bindings, binding_count, effect_factory);
- 
-+    
-+    for(int i = 0; i < (wcslen(property_xml)/100)+1; i++){
-+        TRACE("%*.*ls",100,100, &property_xml[i*100]);
-+    }
-+    printf("%ls\n", property_xml);
-     d2d_factory_init_builtin_effects(factory);
- 
-     return d2d_factory_register_effect_from_string(factory, effect_id, property_xml, bindings,
-@@ -1179,7 +1187,23 @@ static HRESULT STDMETHODCALLTYPE d2d_factory_GetEffectProperties(ID2D1Factory7 *
+@@ -1179,7 +1179,94 @@ static HRESULT STDMETHODCALLTYPE d2d_factory_GetEffectProperties(ID2D1Factory7 *
      if (!(reg = d2d_factory_get_registered_effect((ID2D1Factory *)iface, effect_id)))
      {
          WARN("Effect id %s not found.\n", wine_dbgstr_guid(effect_id));
 -        return HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
 +        //just go with a default
-+        if(IsEqualCLSID(effect_id, &CLSID_D2D1OpacityMetadata) ||
++        if(
++            //effects
++            IsEqualCLSID(effect_id, &CLSID_D2D12DAffineTransform) ||      
++            IsEqualCLSID(effect_id, &CLSID_D2D13DPerspectiveTransform) || 
++            IsEqualCLSID(effect_id, &CLSID_D2D13DTransform) ||            
++            IsEqualCLSID(effect_id, &CLSID_D2D1ArithmeticComposite) ||    
++            IsEqualCLSID(effect_id, &CLSID_D2D1Atlas) ||                  
++            IsEqualCLSID(effect_id, &CLSID_D2D1BitmapSource) ||           
++            IsEqualCLSID(effect_id, &CLSID_D2D1Blend) ||                  
++            IsEqualCLSID(effect_id, &CLSID_D2D1Border) ||                 
++            IsEqualCLSID(effect_id, &CLSID_D2D1Brightness) ||             
++            IsEqualCLSID(effect_id, &CLSID_D2D1ColorManagement) ||        
++            IsEqualCLSID(effect_id, &CLSID_D2D1ColorMatrix) ||            
++            IsEqualCLSID(effect_id, &CLSID_D2D1Composite) ||              
++            IsEqualCLSID(effect_id, &CLSID_D2D1ConvolveMatrix) ||         
++            IsEqualCLSID(effect_id, &CLSID_D2D1Crop) ||                   
++            IsEqualCLSID(effect_id, &CLSID_D2D1DirectionalBlur) ||        
++            IsEqualCLSID(effect_id, &CLSID_D2D1DiscreteTransfer) ||       
++            IsEqualCLSID(effect_id, &CLSID_D2D1DisplacementMap) ||        
++            IsEqualCLSID(effect_id, &CLSID_D2D1DistantDiffuse) ||         
++            IsEqualCLSID(effect_id, &CLSID_D2D1DistantSpecular) ||        
++            IsEqualCLSID(effect_id, &CLSID_D2D1DpiCompensation) ||        
++            IsEqualCLSID(effect_id, &CLSID_D2D1Flood) ||                  
++            IsEqualCLSID(effect_id, &CLSID_D2D1GammaTransfer) ||          
++            IsEqualCLSID(effect_id, &CLSID_D2D1GaussianBlur) ||           
++            IsEqualCLSID(effect_id, &CLSID_D2D1Scale) ||                  
++            IsEqualCLSID(effect_id, &CLSID_D2D1Histogram) ||              
++            IsEqualCLSID(effect_id, &CLSID_D2D1HueRotation) ||            
++            IsEqualCLSID(effect_id, &CLSID_D2D1LinearTransfer) ||         
++            IsEqualCLSID(effect_id, &CLSID_D2D1LuminanceToAlpha) ||       
++            IsEqualCLSID(effect_id, &CLSID_D2D1Morphology) ||             
++            IsEqualCLSID(effect_id, &CLSID_D2D1OpacityMetadata) ||        
++            IsEqualCLSID(effect_id, &CLSID_D2D1PointDiffuse) ||           
++            IsEqualCLSID(effect_id, &CLSID_D2D1PointSpecular) ||          
++            IsEqualCLSID(effect_id, &CLSID_D2D1Premultiply) ||            
++            IsEqualCLSID(effect_id, &CLSID_D2D1Saturation) ||             
++            IsEqualCLSID(effect_id, &CLSID_D2D1Shadow) ||                 
++            IsEqualCLSID(effect_id, &CLSID_D2D1SpotDiffuse) ||            
++            IsEqualCLSID(effect_id, &CLSID_D2D1SpotSpecular) ||           
++            IsEqualCLSID(effect_id, &CLSID_D2D1TableTransfer) ||          
++            IsEqualCLSID(effect_id, &CLSID_D2D1Tile) ||                   
++            IsEqualCLSID(effect_id, &CLSID_D2D1Turbulence) ||             
++            IsEqualCLSID(effect_id, &CLSID_D2D1UnPremultiply) ||          
++            //effects_1
++            IsEqualCLSID(effect_id, &CLSID_D2D1YCbCr) ||
++            //effects_2
++            IsEqualCLSID(effect_id, &CLSID_D2D1Contrast) ||             
++            IsEqualCLSID(effect_id, &CLSID_D2D1RgbToHue) ||             
++            IsEqualCLSID(effect_id, &CLSID_D2D1HueToRgb) ||             
++            IsEqualCLSID(effect_id, &CLSID_D2D1ChromaKey) ||            
++            IsEqualCLSID(effect_id, &CLSID_D2D1Emboss) ||               
++            IsEqualCLSID(effect_id, &CLSID_D2D1Exposure) ||             
++            IsEqualCLSID(effect_id, &CLSID_D2D1Grayscale) ||            
++            IsEqualCLSID(effect_id, &CLSID_D2D1Invert) ||               
++            IsEqualCLSID(effect_id, &CLSID_D2D1Posterize) ||            
++            IsEqualCLSID(effect_id, &CLSID_D2D1Sepia) ||                
++            IsEqualCLSID(effect_id, &CLSID_D2D1Sharpen) ||              
++            IsEqualCLSID(effect_id, &CLSID_D2D1Straighten) ||           
++            IsEqualCLSID(effect_id, &CLSID_D2D1TemperatureTint) ||      
++            IsEqualCLSID(effect_id, &CLSID_D2D1Vignette) ||             
++            IsEqualCLSID(effect_id, &CLSID_D2D1EdgeDetection) ||        
++            IsEqualCLSID(effect_id, &CLSID_D2D1HighlightsShadows) ||    
++            IsEqualCLSID(effect_id, &CLSID_D2D1LookupTable3D) ||        
++            IsEqualCLSID(effect_id, &CLSID_D2D1Opacity) ||              
++            IsEqualCLSID(effect_id, &CLSID_D2D1AlphaMask) ||            
++            IsEqualCLSID(effect_id, &CLSID_D2D1CrossFade) ||            
++            IsEqualCLSID(effect_id, &CLSID_D2D1Tint) ||                 
++            IsEqualCLSID(effect_id, &CLSID_D2D1WhiteLevelAdjustment) || 
++            IsEqualCLSID(effect_id, &CLSID_D2D1HdrToneMap) ||           
++
++            IsEqualCLSID(effect_id, &CLSID_D2D1OpacityMetadata) ||
 +            IsEqualCLSID(effect_id, &CLSID_D2D1Histogram) || 
 +            IsEqualCLSID(effect_id, &CLSID_D2D1AlphaMask) || 
 +            IsEqualCLSID(effect_id, &CLSID_D2D1ConvolveMatrix) || 
@@ -41,7 +89,8 @@ index 80c147638cd..d81ca365cd1 100644
 +            IsEqualCLSID(effect_id, &CLSID_D2D12DAffineTransform) ||
 +            IsEqualCLSID(effect_id, &CLSID_D2D1ColorManagement) ||
 +            IsEqualCLSID(effect_id, &CLSID_D2D1UnPremultiply) ||
-+            IsEqualCLSID(effect_id, &CLSID_D2D1Premultiply)
++            IsEqualCLSID(effect_id, &CLSID_D2D1Premultiply) ||
++            IsEqualCLSID(effect_id, &CLSID_D2D1WhiteLevelAdjustment)
 +        )
 +            reg = d2d_factory_get_registered_effect((ID2D1Factory *)iface, &CLSID_D2D1Blend);
 +        else

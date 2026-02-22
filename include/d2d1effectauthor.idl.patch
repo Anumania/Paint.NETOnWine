@@ -1,0 +1,27 @@
+diff --git a/include/d2d1effectauthor.idl b/include/d2d1effectauthor.idl
+index a58ec35b4b5..a812cc37ca9 100644
+--- a/include/d2d1effectauthor.idl
++++ b/include/d2d1effectauthor.idl
+@@ -617,3 +617,21 @@ interface ID2D1EffectImpl : IUnknown
+         [in] ID2D1TransformGraph *graph
+     );
+ }
++
++[
++    object,
++    uuid(84ab595a-fc81-4546-bacd-e8ef4d8abe7a),
++    local,
++]
++interface ID2D1EffectContext1 : ID2D1EffectContext {
++
++}
++
++[
++    object,
++    uuid(577ad2a0-9fc7-4dda-8b18-dab810140052),
++    local,
++]
++interface ID2D1EffectContext2 : ID2D1EffectContext1 {
++
++}
+\ No newline at end of file

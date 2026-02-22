@@ -1,5 +1,5 @@
 diff --git a/dlls/dcomp/device.c b/dlls/dcomp/device.c
-index 2744d758e91..f221ff7c988 100644
+index 2744d758e91..9a439bbe615 100644
 --- a/dlls/dcomp/device.c
 +++ b/dlls/dcomp/device.c
 @@ -15,13 +15,27 @@
@@ -30,7 +30,7 @@ index 2744d758e91..f221ff7c988 100644
  
  WINE_DEFAULT_DEBUG_CHANNEL(dcomp);
  
-@@ -45,3 +59,167 @@ HRESULT WINAPI DCompositionCreateDevice3(IUnknown *rendering_device, REFIID iid,
+@@ -45,3 +59,170 @@ HRESULT WINAPI DCompositionCreateDevice3(IUnknown *rendering_device, REFIID iid,
  
      return E_NOTIMPL;
  }
@@ -57,6 +57,7 @@ index 2744d758e91..f221ff7c988 100644
 +
 +    if (IsEqualGUID( iid, &IID_IUnknown ) ||
 +        IsEqualGUID( iid, &IID_IActivationFactory) ||
++        IsEqualGUID( iid, &IID_IAgileObject) ||
 +        IsEqualGUID( iid, &IID_ICompositorController ))
 +    {
 +        IUnknown_AddRef( iface );
@@ -108,23 +109,25 @@ index 2744d758e91..f221ff7c988 100644
 +
 +static HRESULT WINAPI compositor_controller_get_Compositor( ICompositorController *iface, __x_ABI_CWindows_CUI_CComposition_CICompositor **value )
 +{
-+    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
++    struct compositor_controller *impl = impl_from_ICompositorController( iface );
 +    TRACE( "STUB iface %p. \n", iface);
-+    return E_NOTIMPL;
++    //compositor_controller_create((ICompositorController**) value);
++    *value = (__x_ABI_CWindows_CUI_CComposition_CICompositor *) iface;
++    return S_OK;
 +}
 +
 +static HRESULT WINAPI compositor_controller_Commit( ICompositorController *iface )
 +{
 +    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
 +    TRACE( "STUB iface %p. \n", iface);
-+    return E_NOTIMPL;
++    return S_OK;
 +}
 +
 +static HRESULT WINAPI compositor_controller_EnsurePreviousCommitCompletedAsync( ICompositorController *iface, __x_ABI_CWindows_CFoundation_CIAsyncAction **operation )
 +{
 +    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
 +    TRACE( "STUB iface %p. \n", iface);
-+    return E_NOTIMPL;
++    return S_OK;
 +}
 +
 +static HRESULT WINAPI compositor_controller_add_CommitNeeded( ICompositorController *iface, __FITypedEventHandler_2_Windows__CUI__CComposition__CCore__CCompositorController_IInspectable *handler,
@@ -132,14 +135,14 @@ index 2744d758e91..f221ff7c988 100644
 +{
 +    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
 +    TRACE( "STUB iface %p. \n", iface);
-+    return E_NOTIMPL;
++    return S_OK;
 +}
 +
 +static HRESULT WINAPI compositor_controller_remove_CommitNeeded( ICompositorController *iface, EventRegistrationToken token )
 +{
 +    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
 +    TRACE( "STUB iface %p. \n", iface);
-+    return E_NOTIMPL;
++    return S_OK;
 +}
 +
 +const struct ICompositorControllerVtbl compositor_controller_vtbl =

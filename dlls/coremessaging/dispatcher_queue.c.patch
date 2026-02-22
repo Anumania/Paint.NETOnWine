@@ -1,12 +1,12 @@
 diff --git a/dlls/coremessaging/dispatcher_queue.c b/dlls/coremessaging/dispatcher_queue.c
 new file mode 100644
-index 00000000000..2a5c3c76c4b
+index 00000000000..4cf4b6a9e6f
 --- /dev/null
 +++ b/dlls/coremessaging/dispatcher_queue.c
-@@ -0,0 +1,291 @@
-+/* CryptoWinRT Credentials Implementation
+@@ -0,0 +1,297 @@
++/* 
 + *
-+ * Copyright (C) 2022 Mohamad Al-Jaf
++ * Copyright (C) 
 + *
 + * This library is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU Lesser General Public
@@ -52,7 +52,9 @@ index 00000000000..2a5c3c76c4b
 +    TRACE( "(%p)->(%s %p)\n", This, debugstr_guid( iid ), obj );
 +
 +    if (IsEqualIID( iid, &IID_IUnknown ) ||
-+        IsEqualIID( iid, &IID_IDispatcherQueue ))
++        IsEqualIID( iid, &IID_IInspectable) ||
++        IsEqualIID( iid, &IID_IDispatcherQueue ) || 
++        IsEqualIID( iid, &IID_IDispatcherQueue2 ))
 +    {
 +        IDispatcherQueue_AddRef( iface );
 +        *obj = iface;
@@ -107,6 +109,7 @@ index 00000000000..2a5c3c76c4b
 +
 +HRESULT WINAPI dispatcher_queue_CreateTimer( IDispatcherQueue *iface, IDispatcherQueueTimer **result) {
 +    FIXME( "iface %p stub!\n", iface);
++    *result = (IDispatcherQueueTimer*) iface;
 +    return S_OK;
 +}
 +
@@ -270,8 +273,11 @@ index 00000000000..2a5c3c76c4b
 +
 +static HRESULT WINAPI dispatcher_queue_statics_GetForCurrentThread(IDispatcherQueueStatics *iface, IDispatcherQueue** out)
 +{
++    //IDispatcherQueue *queue = NULL;
 +    FIXME( "iface %p stub!\n", iface);
-+    return dispatcher_queue_create(out);
++    HRESULT hr = dispatcher_queue_create(out);
++    //FIXME( "out is %p and hr is %ld\n", queue, hr);
++    return hr;
 +}
 +
 +static const struct IDispatcherQueueStaticsVtbl dispatcher_queue_statics_vtbl =
