@@ -1,0 +1,19 @@
+diff --git a/dlls/dcomp/Makefile.in b/dlls/dcomp/Makefile.in
+index 11187b52189..b11264cc10c 100644
+--- a/dlls/dcomp/Makefile.in
++++ b/dlls/dcomp/Makefile.in
+@@ -1,8 +1,13 @@
+ MODULE    = dcomp.dll
++IMPORTS = uuid combase
++IMPORTLIB = dcomp
++
+ 
+ EXTRADLLFLAGS = -Wb,--prefer-native
+ 
+ VER_PRODUCTVERSION = 10,0,14393,0
+ 
+ SOURCES = \
+-	device.c
++	device.c \
++	classes.idl \
++	

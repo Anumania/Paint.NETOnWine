@@ -1,0 +1,201 @@
+diff --git a/dlls/dcomp/device.c b/dlls/dcomp/device.c
+index 2744d758e91..f221ff7c988 100644
+--- a/dlls/dcomp/device.c
++++ b/dlls/dcomp/device.c
+@@ -15,13 +15,27 @@
+  * License along with this library; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+  */
++
++#include "initguid.h"
+ #include <stdarg.h>
++/*
++#include <winstring.h>
++#include <wine/debug.h>
+ 
+ #include "windef.h"
+ #include "winbase.h"
+ #include "objidl.h"
+ #include "dxgi.h"
+ #include "wine/debug.h"
++#include "hstring.h"
++#include "activation.h"
++#include "windef.h"
++#include "winbase.h"
++#include "winstring.h"*/
++
++#include "private.h"
++
++
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(dcomp);
+ 
+@@ -45,3 +59,167 @@ HRESULT WINAPI DCompositionCreateDevice3(IUnknown *rendering_device, REFIID iid,
+ 
+     return E_NOTIMPL;
+ }
++
++/***********************************************************************
++ *          ICompositorController
++ */
++struct compositor_controller
++{
++    ICompositorController ICompositorController_iface;
++    LONG ref;
++};
++
++static inline struct compositor_controller *impl_from_ICompositorController( ICompositorController *iface )
++{
++    return CONTAINING_RECORD( iface, struct compositor_controller, ICompositorController_iface );
++}
++
++static HRESULT WINAPI compositor_controller_QueryInterface( ICompositorController *iface, REFIID iid, void **out )
++{
++    struct compositor_controller *compositor = impl_from_ICompositorController( iface );
++
++    TRACE( "iface %p, iid %s, out %p.\n", iface, debugstr_guid( iid ), out );
++
++    if (IsEqualGUID( iid, &IID_IUnknown ) ||
++        IsEqualGUID( iid, &IID_IActivationFactory) ||
++        IsEqualGUID( iid, &IID_ICompositorController ))
++    {
++        IUnknown_AddRef( iface );
++        *out = &compositor->ICompositorController_iface;
++        return S_OK;
++    }
++
++    FIXME( "%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid( iid ) );
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++static ULONG WINAPI compositor_controller_AddRef( ICompositorController *iface )
++{
++    struct compositor_controller *impl = impl_from_ICompositorController( iface );
++    ULONG ref = InterlockedIncrement( &impl->ref );
++    TRACE( "iface %p increasing refcount to %lu.\n", iface, ref );
++    return ref;
++}
++
++static ULONG WINAPI compositor_controller_Release( ICompositorController *iface )
++{
++    struct compositor_controller *impl = impl_from_ICompositorController( iface );
++    ULONG ref = InterlockedDecrement( &impl->ref );
++    TRACE( "iface %p decreasing refcount to %lu.\n", iface, ref );
++    return ref;
++}
++
++static HRESULT WINAPI compositor_controller_GetIids( ICompositorController *iface, ULONG *iidCount, IID **iids )
++{
++    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
++    TRACE( "STUB iface %p. \n", iface);
++    return E_NOTIMPL;
++}
++
++static HRESULT WINAPI compositor_controller_GetRuntimeClassName( ICompositorController *iface, HSTRING *className)
++{
++    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
++    TRACE( "STUB iface %p. \n", iface);
++    return E_NOTIMPL;
++}
++
++static HRESULT WINAPI compositor_controller_GetTrustLevel( ICompositorController *iface, TrustLevel *trustLevel )
++{
++    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
++    TRACE( "STUB iface %p. \n", iface);
++    return E_NOTIMPL;
++}
++
++static HRESULT WINAPI compositor_controller_get_Compositor( ICompositorController *iface, __x_ABI_CWindows_CUI_CComposition_CICompositor **value )
++{
++    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
++    TRACE( "STUB iface %p. \n", iface);
++    return E_NOTIMPL;
++}
++
++static HRESULT WINAPI compositor_controller_Commit( ICompositorController *iface )
++{
++    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
++    TRACE( "STUB iface %p. \n", iface);
++    return E_NOTIMPL;
++}
++
++static HRESULT WINAPI compositor_controller_EnsurePreviousCommitCompletedAsync( ICompositorController *iface, __x_ABI_CWindows_CFoundation_CIAsyncAction **operation )
++{
++    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
++    TRACE( "STUB iface %p. \n", iface);
++    return E_NOTIMPL;
++}
++
++static HRESULT WINAPI compositor_controller_add_CommitNeeded( ICompositorController *iface, __FITypedEventHandler_2_Windows__CUI__CComposition__CCore__CCompositorController_IInspectable *handler,
++        EventRegistrationToken *token )
++{
++    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
++    TRACE( "STUB iface %p. \n", iface);
++    return E_NOTIMPL;
++}
++
++static HRESULT WINAPI compositor_controller_remove_CommitNeeded( ICompositorController *iface, EventRegistrationToken token )
++{
++    //struct compositor_controller *impl = impl_from_ICompositorController( iface );
++    TRACE( "STUB iface %p. \n", iface);
++    return E_NOTIMPL;
++}
++
++const struct ICompositorControllerVtbl compositor_controller_vtbl =
++{
++    /* IUnknown methods */
++    compositor_controller_QueryInterface,
++    compositor_controller_AddRef,
++    compositor_controller_Release,
++    /*** IInspectable methods ***/
++    compositor_controller_GetIids,
++    compositor_controller_GetRuntimeClassName,
++    compositor_controller_GetTrustLevel,
++    /* ICompositorController methods */
++    compositor_controller_get_Compositor,
++    compositor_controller_Commit,
++    compositor_controller_EnsurePreviousCommitCompletedAsync,
++    compositor_controller_add_CommitNeeded,
++    compositor_controller_remove_CommitNeeded,
++};
++
++static HRESULT compositor_controller_create(ICompositorController **obj)
++{
++    struct compositor_controller *This = malloc( sizeof(*This) );
++
++    if (!This)
++        return E_OUTOFMEMORY;
++    This->ICompositorController_iface.lpVtbl = &compositor_controller_vtbl;
++    This->ref = 1;
++
++    *obj = &This->ICompositorController_iface;
++
++    return S_OK;
++}
++
++static struct compositor_controller compositor_controller_inst =
++{
++    {&compositor_controller_vtbl},
++    1,
++};
++
++IActivationFactory *compositor_controller_activation_factory = (IActivationFactory*) &compositor_controller_inst.ICompositorController_iface;
++
++
++HRESULT WINAPI DllGetActivationFactory( HSTRING classid, IActivationFactory **factory )
++{
++    const WCHAR *buffer = WindowsGetStringRawBuffer( classid, NULL );
++
++    TRACE( "class %s, factory %p.\n", debugstr_hstring(classid), factory );
++
++    *factory = NULL;
++
++    //if (!wcscmp( buffer, RUNTIMECLASS_Windows_UI_Composition_Core_CompositorController ))
++    if (!wcscmp( buffer, L"Windows.UI.Composition.Core.CompositorController" ))
++        IActivationFactory_QueryInterface( compositor_controller_activation_factory, &IID_IActivationFactory, (void **)factory );
++
++    if (*factory) return S_OK;
++    return CLASS_E_CLASSNOTAVAILABLE;
++}
+\ No newline at end of file
