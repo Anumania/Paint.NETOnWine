@@ -1,0 +1,83 @@
+diff --git a/include/windows.ui.composition.core.idl b/include/windows.ui.composition.core.idl
+new file mode 100644
+index 00000000000..dc5b3782878
+--- /dev/null
++++ b/include/windows.ui.composition.core.idl
+@@ -0,0 +1,77 @@
++/*
++ * Copyright (C) 2026 Jonah Cathcart
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
++ */
++
++#ifdef __WIDL__
++#pragma winrt ns_prefix
++#endif
++
++import "inspectable.idl";
++import "asyncinfo.idl";
++import "eventtoken.idl";
++import "windowscontracts.idl";
++import "windows.foundation.idl";
++import "windows.ui.composition.idl";
++
++namespace Windows.Foundation {
++    interface IAsyncAction;
++    interface IClosable;
++
++    apicontract UniversalApiContract;
++}
++
++namespace Windows.UI.Composition {
++    runtimeclass Compositor;
++}
++
++namespace Windows.UI.Composition.Core {
++    interface ICompositorController;
++
++    runtimeclass CompositorController;
++}
++
++namespace Windows.UI.Composition.Core {
++    declare
++    {
++        interface Windows.Foundation.TypedEventHandler<Windows.UI.Composition.Core.CompositorController*, IInspectable*>;
++    }
++}
++
++
++namespace Windows.UI.Composition.Core {
++    [contract(Windows.Foundation.UniversalApiContract, 6.0)]
++    [exclusiveto(Windows.UI.Composition.Core.CompositorController)]
++    [uuid(2D75F35A-70A7-4395-BA2D-CEF0B18399F9)]
++    interface ICompositorController : IInspectable
++    {
++        [propget] HRESULT Compositor([out] [retval] Windows.UI.Composition.Compositor** value);
++        HRESULT Commit();
++        HRESULT EnsurePreviousCommitCompletedAsync([out] [retval] Windows.Foundation.IAsyncAction** operation);
++        [eventadd] HRESULT CommitNeeded([in] Windows.Foundation.TypedEventHandler<Windows.UI.Composition.Core.CompositorController*, IInspectable*>* handler, [out] [retval] EventRegistrationToken* token);
++        [eventremove] HRESULT CommitNeeded([in] EventRegistrationToken token);
++    }
++
++    [activatable(Windows.Foundation.UniversalApiContract, 6.0)]
++    [contract(Windows.Foundation.UniversalApiContract, 6.0)]
++    [marshaling_behavior(agile)]
++    [threading(both)]
++    runtimeclass CompositorController
++    {
++        [default] interface Windows.UI.Composition.Core.ICompositorController;
++        interface Windows.Foundation.IClosable;
++    }
++}
