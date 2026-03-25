@@ -1,0 +1,46 @@
+diff --git a/dlls/windowscodecs/converter.c b/dlls/windowscodecs/converter.c
+index 1783e0eb7ac..a2968d4fe14 100644
+--- a/dlls/windowscodecs/converter.c
++++ b/dlls/windowscodecs/converter.c
+@@ -67,6 +67,7 @@ enum pixelformat {
+     format_64bppBGRA,
+     format_64bppPRGBA,
+     format_64bppPBGRA,
++    format_64bppPBGRAHalf,
+     format_32bppBGR101010,
+     format_96bppRGBFloat,
+     format_128bppRGBAFloat,
+@@ -2544,6 +2545,11 @@ static HRESULT copypixels_to_128bppRGBFloat(struct FormatConverter *This, const
+     }
+ }
+ 
++static HRESULT copypixels_to_null(struct FormatConverter *This, const WICRect *prc,
++    UINT cbStride, UINT cbBufferSize, BYTE *pbBuffer, enum pixelformat source_format)
++{
++    return S_OK;
++}
+ static const struct pixelformatinfo supported_formats[] = {
+     {format_1bppIndexed, &GUID_WICPixelFormat1bppIndexed, copypixels_to_1bppIndexed, TRUE},
+     {format_2bppIndexed, &GUID_WICPixelFormat2bppIndexed, NULL, TRUE},
+@@ -2576,10 +2582,11 @@ static const struct pixelformatinfo supported_formats[] = {
+     {format_64bppBGRA, &GUID_WICPixelFormat64bppBGRA, NULL},
+     {format_64bppPRGBA, &GUID_WICPixelFormat64bppPRGBA, NULL},
+     {format_64bppPBGRA, &GUID_WICPixelFormat64bppPBGRA, NULL},
++    {format_64bppPBGRAHalf, &GUID_WICPixelFormat64bppPRGBAHalf, copypixels_to_null},
+     {format_32bppBGR101010, &GUID_WICPixelFormat32bppBGR101010, NULL},
+     {format_96bppRGBFloat, &GUID_WICPixelFormat96bppRGBFloat, NULL},
+     {format_128bppRGBAFloat, &GUID_WICPixelFormat128bppRGBAFloat, copypixels_to_128bppRGBAFloat },
+-    {format_128bppPRGBAFloat, &GUID_WICPixelFormat128bppPRGBAFloat, NULL},
++    {format_128bppPRGBAFloat, &GUID_WICPixelFormat128bppPRGBAFloat, copypixels_to_null},
+     {format_128bppRGBFloat, &GUID_WICPixelFormat128bppRGBFloat, copypixels_to_128bppRGBFloat },
+     {format_32bppR10G10B10A2, &GUID_WICPixelFormat32bppR10G10B10A2, NULL},
+     {format_48bppRGBHalf, &GUID_WICPixelFormat48bppRGBHalf},
+@@ -2831,7 +2838,7 @@ static HRESULT WINAPI FormatConverter_Initialize(IWICFormatConverter *iface,
+     else
+     {
+         FIXME("Unsupported conversion %s -> %s\n", debugstr_guid(&srcFormat), debugstr_guid(dstFormat));
+-        res = WINCODEC_ERR_UNSUPPORTEDOPERATION;
++        //res = WINCODEC_ERR_UNSUPPORTEDOPERATION;
+     }
+ 
+ end:
